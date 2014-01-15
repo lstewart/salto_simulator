@@ -162,8 +162,8 @@ AASM_MSG	=	@echo
 endif
 
 # Pull in the SDL CFLAGS, -I includes and LIBS
-INC	+= $(shell sdl-config --cflags)
-LIBS	+= $(shell sdl-config --libs)
+INC	+= $(shell sdl2-config --cflags)
+LIBS	+= $(shell sdl2-config --libs)
 
 # The object files for the altogether binary
 OBJS	=	$(OBJ)/salto.o $(OBJ)/zcat.o $(OBJ)/pics.o \
