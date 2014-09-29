@@ -229,7 +229,7 @@ extern key_map_t key_map[KEY_MAP_SIZE];
 extern int kbd_ad_r(int addr);
 
 /** @brief hook for the frontend to stuff key down + up events */
-extern int kbd_key(SDL_keysym *keysym, int down);
+extern int kbd_key(SDL_Keysym *keysym, int down);
 
 /** @brief hook for the frontend to set a boot key (may be called multiple times) */
 extern int kbd_boot(const char *key);
