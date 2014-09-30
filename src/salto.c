@@ -122,7 +122,9 @@ size_t xngsize;
 #define	BORDER_W	8
 #define	BORDER_X	(BORDER_W/2)
 
-static SDL_Surface *screen = NULL;
+static SDL_Renderer *renderer = NULL;
+
+static SDL_Window *screen = NULL;
 static SDL_Surface *alto = NULL;
 static SDL_Surface *debug = NULL;
 static SDL_Surface *pixels = NULL;
@@ -538,7 +540,8 @@ void debug_view(int which)
 		sdl_blit(screen, alto,
 			BORDER_X, BORDER_Y, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 	}
-	SDL_UpdateRect(screen, 0, 0, screen->w, screen->h);
+	/* SDL_UpdateRect(screen, 0, 0, screen->w, screen->h); */
+	SDL_RenderPresent(renderer);
 }
 
 /**
@@ -555,20 +558,28 @@ void debug_view(int which)
  */
 int sdl_update(int full)
 {
-	static SDLMod mod_old;
-	SDLMod mod_new;
+	static SDL_Keymod mod_old;
+	SDL_Keymod mod_new;
 	SDL_Event ev;
 
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
-		case SDL_VIDEORESIZE:
+		case SDL_WINDOWEVENT:
+		  if (ev.window.type == SDL_WINDOWEVENT_RESIZE) {
 			if (NULL != screen)
 				SDL_FreeSurface(screen);
-			screen = SDL_SetVideoMode(ev.resize.w, ev.resize.h,
-				0, SDL_HWSURFACE | SDL_RESIZABLE);
+			screen = SDL_CreateWindow("Alto",
+						  SDL_WINDOWPOS_UNDEFINED,
+						  SDL_WINDOWPOS_UNDEFINED,
+						  ev.window.data1, 
+						  ev.window.data2,
+						  SDL_WINDOW_RESIZABLE);
+			renderer = SDL_CreateRenderer(screen, -1, 0);
 			SDL_ShowCursor(sdl_cursor);
-			SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,BORDER_RGB));
-			sdl_update(1);
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+			SDL_RenderClear(renderer);
+			SDL_RenderPresent(renderer);
+		  }
 			break;
 
 		case SDL_KEYDOWN:
@@ -585,7 +596,7 @@ int sdl_update(int full)
 					step = 1;
 				kbd_key(&ev.key.keysym, 1);
 				break;
-			case SDLK_PRINT:
+			case SDLK_PRINTSCREEN:
 				if (SDL_GetModState() & KMOD_LCTRL) {
 					/* CTRL+PRINT starts/stops MNG recording */
 					if (mng)
@@ -614,7 +625,7 @@ int sdl_update(int full)
 			case SDLK_PAUSE:
 				paused ^= 1;
 				break;
-			case SDLK_SCROLLOCK:
+			case SDLK_SCROLLLOCK:
 				debug_view(dbg.visible ^ 1);
 				break;
 			default:
